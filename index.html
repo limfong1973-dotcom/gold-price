@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日金价</title>
+<style>
+  body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+  th { background: #f5f5f5; }
+  .updated { color: #888; font-size: 14px; margin-bottom: 10px; }
+  .wa-btn { display: block; background: #25D366; color: white; text-align: center;
+    padding: 15px; border-radius: 8px; text-decoration: none; font-size: 18px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<h2>今日金价（每分钟更新）</h2>
+<p class="updated" id="updated">加载中...</p>
+<table>
+  <tr><th>重量</th><th>买入价 (RM)</th><th>卖出价 (RM)</th></tr>
+  <tr><td>1克</td><td id="buy-1"></td><td id="sell-1"></td></tr>
+  <tr><td>5克</td><td id="buy-5"></td><td id="sell-5"></td></tr>
+  <tr><td>10克</td><td id="buy-10"></td><td id="sell-10"></td></tr>
+  <tr><td>50克</td><td id="buy-50"></td><td id="sell-50"></td></tr>
+  <tr><td>100克</td><td id="buy-100"></td><td id="sell-100"></td></tr>
+  <tr><td>500克</td><td id="buy-500"></td><td id="sell-500"></td></tr>
+  <tr><td>1公斤</td><td id="buy-1000"></td><td id="sell-1000"></td></tr>
+</table>
+<a class="wa-btn" href="https://wa.me/你的号码" target="_blank">WhatsApp 联系我们</a>
+
+<script>
+const weights = [1, 5, 10, 50, 100, 500, 1000];
+const buyPremium = 0.02;
+const sellPremium = 0.04;
+
+async function updatePrices() {
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F');
+    const data = await res.json();
+    const pricePerOunce = data.chart.result[0].meta.regularMarketPrice;
+    const pricePerGram = pricePerOunce / 31.1035;
+    weights.forEach(w => {
+      const base = pricePerGram * w;
+      document.getElementById(`buy-${w}`).textContent = (base * (1 + buyPremium)).toFixed(2);
+      document.getElementById(`sell-${w}`).textContent = (base * (1 + sellPremium)).toFixed(2);
+    });
+    document.getElementById('updated').textContent =
+      '更新时间: ' + new Date().toLocaleString('zh-CN');
+  } catch (e) {
+    document.getElementById('updated').textContent = '价格加载失败，请刷新';
+  }
+}
+
+updatePrices();
+setInterval(updatePrices, 60000);
+</script>
+</body>
+</html>
